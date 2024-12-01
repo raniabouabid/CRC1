@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<!-- saved from url=(0075)file:///D:/cosic/R%C3%A9seaux%20locaux%20industriels%20et/projetds/web.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Calculateur CRC</title>
+    <!-- Styles CSS intégrés -->
+    <style>
+      /* Style général */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f0f8ff;
+        color: #003366;
+      }
+
+      /* En-tête */
+      header {
+        background-color: #00509e;
+        color: #ffffff;
+        padding: 20px;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .logo-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .logo {
+        width: 60px;
+        height: auto;
+      }
+
+      /* Section principale */
+      main {
+        margin: 20px auto;
+        padding: 20px;
+        max-width: 600px;
+        background: #ffffff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+      }
+
+      /* Formulaire */
+      form {
+        display: flex;
+        flex-direction: column;
+      }
+
+      label {
+        margin: 10px 0 5px;
+        font-weight: bold;
+      }
+
+      input,
+      select,
+      button {
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #cccccc;
+        border-radius: 5px;
+        font-size: 16px;
+      }
+
+      button {
+        background-color: #00509e;
+        color: #ffffff;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #003366;
+      }
+
+      /* Résultats */
+      #resultat {
+        font-size: 16px;
+        margin-top: 20px;
+        background: #e0f7fa;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #00509e;
+      }
+
+      /* Pied de page */
+      footer {
+        text-align: center;
+        padding: 10px;
+        background-color: #00509e;
+        color: #ffffff;
+        font-size: 14px;
+      }
+    </style>
+  <style type="text/css" id="operaUserStyle"></style></head>
+
+  <body>
+    <header>
+      <div class="logo-container">
+        <img class="logo" src="./Calculateur CRC_files/logo_face_book.jpg" alt="Logo">
+        <h1>Calculateur CRC</h1>
+      </div>
+    </header>
+
+    <main>
+      <article>
+        <h2>Calcul de CRC</h2>
+        <form id="crcForm">
+          <label for="crcType">Type de CRC :</label>
+          <select id="crcType">
+            <option value="8">CRC-8</option>
+            <option value="16">CRC-16</option>
+          </select>
+          <br>
+          <label for="message">Message (hexadécimal) :</label>
+          <input type="text" id="message" name="message" placeholder="Ex : 0207" required="">
+          <br>
+          <label for="polynomial">Polynôme (hexadécimal) :</label>
+          <input type="text" id="polynomial" name="polynomial" placeholder="Ex : 07" required="">
+          <br>
+          <button type="button" onclick="calculerCRC()">Calculer CRC</button>
+        </form>
+        <p id="resultat"><strong>Résultats :</strong><br>
+          Message (hex) : 0207<br>
+          Polynôme (hex) : A001<br>
+          CRC calculé (hex) : 1241<br>
+          CRC calculé (bin) : 0001001001000001</p>
+      </article>
+    </main>
+
+    <footer>
+      <p>© 2024 par Rania Bouabid et Islem Jawedi. Tous droits réservés.</p>
+    </footer>
+
+    <script>
+      function hexToBytes(hex) {
+        const bytes = [];
+        for (let i = 0; i < hex.length; i += 2) {
+          bytes.push(parseInt(hex.substr(i, 2), 16));
+        }
+        return bytes;
+      }
+
+      function calculateCRC8(message, polynomial) {
+        const messageBytes = hexToBytes(message);
+        const poly = parseInt(polynomial, 16);
+        let crc = 0x00;
+
+        for (const byte of messageBytes) {
+          crc ^= byte;
+          for (let i = 0; i < 8; i++) {
+            if (crc & 0x80) {
+              crc = (crc << 1) ^ poly;
+            } else {
+              crc <<= 1;
+            }
+            crc &= 0xff;
+          }
+        }
+
+        return {
+          hex: crc.toString(16).toUpperCase().padStart(2, "0"),
+          bin: crc.toString(2).padStart(8, "0"),
+        };
+      }
+
+      function calculateCRC16(message, polynomial) {
+        const messageBytes = hexToBytes(message);
+        const poly = parseInt(polynomial, 16);
+        let crc = 0xffff;
+
+        for (const byte of messageBytes) {
+          crc ^= byte;
+          for (let i = 0; i < 8; i++) {
+            if (crc & 0x0001) {
+              crc = (crc >> 1) ^ poly;
+            } else {
+              crc >>= 1;
+            }
+          }
+        }
+
+        return {
+          hex: crc.toString(16).toUpperCase().padStart(4, "0"),
+          bin: crc.toString(2).padStart(16, "0"),
+        };
+      }
+
+      function calculerCRC() {
+        const crcType = document.getElementById("crcType").value;
+        const message = document.getElementById("message").value.trim();
+        const polynomial = document.getElementById("polynomial").value.trim();
+
+        if (!/^[0-9a-fA-F]+$/.test(message)) {
+          alert("Le message doit être une chaîne hexadécimale valide.");
+          return;
+        }
+        if (!/^[0-9a-fA-F]+$/.test(polynomial)) {
+          alert("Le polynôme doit être une chaîne hexadécimale valide.");
+          return;
+        }
+
+        let result;
+        if (crcType === "8") {
+          result = calculateCRC8(message, polynomial);
+        } else {
+          result = calculateCRC16(message, polynomial);
+        }
+
+        document.getElementById(
+          "resultat"
+        ).innerHTML = `<strong>Résultats :</strong><br>
+          Message (hex) : ${message.toUpperCase()}<br>
+          Polynôme (hex) : ${polynomial.toUpperCase()}<br>
+          CRC calculé (hex) : ${result.hex}<br>
+          CRC calculé (bin) : ${result.bin}`;
+      }
+    </script>
+  
+
+</body></html>
